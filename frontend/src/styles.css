@@ -1,0 +1,140 @@
+:root {
+  font-family: "Manrope", sans-serif;
+  color: #132238;
+  background:
+    radial-gradient(circle at top left, rgba(245, 182, 66, 0.35), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(42, 157, 143, 0.28), transparent 35%),
+    linear-gradient(135deg, #f5efe4 0%, #ecf4f0 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.panel {
+  width: min(640px, 100%);
+  padding: 40px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 60px rgba(19, 34, 56, 0.14);
+  backdrop-filter: blur(12px);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 800;
+  color: #2a9d8f;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1;
+}
+
+.lead {
+  margin: 18px 0 28px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #415a77;
+}
+
+.dropzone {
+  display: block;
+  border: 2px dashed #2a9d8f;
+  border-radius: 22px;
+  padding: 28px;
+  background: #f9fffd;
+  cursor: pointer;
+}
+
+.dropzone span {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.dropzone input {
+  width: 100%;
+}
+
+.summary {
+  margin-top: 16px;
+  color: #415a77;
+}
+
+.cta {
+  margin-top: 24px;
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  padding: 16px 20px;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, #1d6fd6, #2a9d8f);
+  box-shadow: 0 12px 24px rgba(29, 111, 214, 0.28);
+  cursor: pointer;
+}
+
+.cta:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.message {
+  margin-top: 16px;
+  color: #132238;
+}
+
+.report {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.report-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(19, 34, 56, 0.05);
+}
+
+.report-item.ok {
+  border-left: 4px solid #2a9d8f;
+}
+
+.report-item.error {
+  border-left: 4px solid #d64545;
+}
+
+.report-item span {
+  color: #415a77;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 24px;
+  }
+}
