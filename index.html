@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Procesador nombre-CUIL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="panel">
+        <p class="eyebrow">PROCESADOR DE PDF</p>
+        <h1>D.G. DE ADMINISTRACION Y LIQUIDACION DE HABERES</h1>
+        <p class="lead">
+          Subi tus archivos en PDF y descarga un ZIP con copias renombradas. Todo se
+          procesa en tu navegador, sin Python ni servidor.
+        </p>
+
+        <div class="upload-form">
+          <div class="mode-picker">
+            <label class="mode-field" for="modeSelect">
+              <span class="mode-field-label">Modo de renombrado</span>
+              <select id="modeSelect" class="mode-select" name="mode">
+                <option value="nombre">Renombrar por Nombre</option>
+                <option value="cuil">Renombrar por CUIL</option>
+              </select>
+            </label>
+          </div>
+
+          <p class="mode-help" id="modeHelp">
+            Busca el campo Apellido y Nombres dentro del PDF.
+          </p>
+
+          <label class="dropzone">
+            <span>Seleccionar PDFs</span>
+            <input id="fileInput" name="pdfs" type="file" multiple accept="application/pdf" />
+          </label>
+
+          <label class="dropzone folder-dropzone">
+            <span>Seleccionar carpeta</span>
+            <input
+              id="folderInput"
+              type="file"
+              multiple
+              webkitdirectory=""
+              directory=""
+              accept="application/pdf"
+            />
+          </label>
+
+          <div class="summary">
+            <span id="fileCount">0 archivo(s) listo(s)</span>
+          </div>
+
+          <button id="processButton" class="cta" type="button">Procesar archivos</button>
+        </div>
+
+        <p class="message" id="message" hidden></p>
+
+        <div class="report" id="report" hidden></div>
+      </section>
+    </main>
+
+    <script src="./jszip.min.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
