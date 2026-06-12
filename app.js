@@ -1,6 +1,9 @@
 import * as pdfjsLib from "./pdf.min.mjs";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.min.mjs";
+// Ensure the worker path works both locally and when served from a subpath (GitHub Pages).
+// Using import.meta.url builds an absolute URL relative to this module.
+const workerUrl = new URL("./pdf.worker.min.mjs", import.meta.url).href;
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([A-Z][A-Z\s,.\-']*?)(?:\s+Cuil|\s+CUIL|\s+\d{2}-\d{8}-\d|\s*$)/i;
 const CUIL_PATTERN = /\b\d{2}-\d{8}-\d\b/;
@@ -101,20 +104,42 @@ async function extractTextFromPages(file, pageCount) {
 }
 
 async function extractName(file) {
-  const text = await extractTextFromPages(file, 1);
+  const text = await extractTextFromPages(file, 2);
   const normalizedText = text.replace(/\s+/g, " ");
+
+  // 1) Preferir extraer el nombre que está inmediatamente antes del CUIL
+  const cuilMatch = normalizedText.match(/\b\d{2}-\d{8}-\d\b/);
+  if (cuilMatch && typeof cuilMatch.index === "number") {
+    const cuilIndex = cuilMatch.index;
+    const before = normalizedText.slice(0, cuilIndex).trim();
+
+    // Buscar un nombre en formato APELLIDO, Nombre Apellido... justo antes del CUIL
+    const nameBeforeCuil = before.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+?,\s*[A-Za-zÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ\s.\-']{1,80})$/);
+    if (nameBeforeCuil && nameBeforeCuil[1]) {
+      const normalizedName = sanitizeName(nameBeforeCuil[1].trim());
+      if (normalizedName) return normalizedName;
+    }
+
+    // Si no hay coma, intentar buscar la última secuencia de palabras con mayúscula inicial
+    const altName = before.match(/([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ'\-\.\s]{3,80})$/);
+    if (altName && altName[1]) {
+      const candidate = altName[1].trim();
+      // Evitar capturar palabras cortas (como JUN 2026)
+      if (candidate.length > 3 && /[A-Za-zÁÉÍÓÚÑ]/.test(candidate)) {
+        const normalizedName = sanitizeName(candidate);
+        if (normalizedName) return normalizedName;
+      }
+    }
+  }
+
+  // 2) Buscar con el patrón original 'Apellido y Nombres' como fallback
   const match = normalizedText.match(NAME_PATTERN);
-
-  if (!match) {
-    throw new Error("No se pudo encontrar el campo Apellido y Nombres.");
+  if (match && match[1]) {
+    const normalizedName = sanitizeName(match[1].trim());
+    if (normalizedName) return normalizedName;
   }
 
-  const normalizedName = sanitizeName(match[1].trim());
-  if (!normalizedName) {
-    throw new Error("El nombre extraido esta vacio.");
-  }
-
-  return normalizedName;
+  throw new Error("No se pudo encontrar el campo Apellido y Nombres.");
 }
 
 async function extractCuil(file) {
@@ -153,12 +178,15 @@ async function processFiles() {
     for (const file of selectedFiles) {
       try {
         const baseName = mode === "cuil" ? await extractCuil(file) : await extractName(file);
+        console.log(`extract base for ${file.name}:`, baseName);
         const finalName = nextAvailableName(`${baseName}.pdf`, usedNames);
         zip.file(finalName, file);
         summary.push({ file: file.name, status: "ok", output: finalName });
         reportLines.push(`${file.name} -> ${finalName}`);
+        console.log(`zipped ${file.name} as ${finalName}`);
       } catch (error) {
         const detail = error?.message || "No se pudo procesar el archivo";
+        console.error(`Error processing ${file.name}:`, detail);
         summary.push({ file: file.name, status: "error", output: detail });
         reportLines.push(`${file.name} -> ERROR: ${detail}`);
       }
