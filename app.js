@@ -1,9 +1,30 @@
 // Load PDF.js from CDN (loaded in index.html as global script)
-const pdfjsLib = window.pdfjsLib;
+// The CDN script exposes pdfjsLib globally
+let pdfjsLib;
 
-// Set worker from CDN
-pdfjsLib.GlobalWorkerOptions.workerSrc = 
-  "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.11.0/build/pdf.worker.min.js";
+// Function to get PDF.js library with proper error handling
+function getPdfjsLib() {
+  if (!pdfjsLib) {
+    // Try different possible namespaces
+    pdfjsLib = window.pdfjsLib || window.pdfjs;
+  }
+  
+  if (!pdfjsLib) {
+    throw new Error("PDF.js library not loaded from CDN. Please refresh the page and try again.");
+  }
+  
+  return pdfjsLib;
+}
+
+// Function to initialize PDF worker
+function initPdfWorker() {
+  const lib = getPdfjsLib();
+  if (!lib.GlobalWorkerOptions) {
+    throw new Error("PDF.js GlobalWorkerOptions not available");
+  }
+  lib.GlobalWorkerOptions.workerSrc = 
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
 
 const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([A-Z][A-Z\s,.\-']*?)(?:\s+Cuil|\s+CUIL|\s+\d{2}-\d{8}-\d|\s*$)/i;
 const CUIL_PATTERN = /\b\d{2}-\d{8}-\d\b/;
@@ -89,8 +110,9 @@ function updateFileList(incomingFiles) {
 }
 
 async function extractTextFromPages(file, pageCount) {
+  const lib = getPdfjsLib();
   const data = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const pdf = await lib.getDocument({ data }).promise;
   const totalPages = Math.min(pdf.numPages, pageCount);
   const chunks = [];
 
@@ -169,6 +191,9 @@ async function processFiles() {
   renderReport([]);
 
   try {
+    // Ensure PDF.js is initialized
+    initPdfWorker();
+    
     const zip = new window.JSZip();
     const usedNames = new Set();
     const summary = [];
