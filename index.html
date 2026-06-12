@@ -34,8 +34,6 @@
           </div>
 
           <p class="mode-help" id="modeHelp">
-            <strong>Nombre:</strong> renombra usando el campo "Apellido y Nombres" (p. ej. GONZALEZ, Claudio Marcelo). 
-            <strong>CUIL:</strong> renombra usando el número de CUIL (p. ej. 20-13862907-5).
           </p>
 
           <label class="dropzone">
@@ -69,7 +67,13 @@
     </main>
 
     <script src="./jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.11.0/build/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // Ensure PDF.js is available as pdfjsLib
+      if (typeof pdfjsLib === 'undefined' && typeof pdfjs !== 'undefined') {
+        window.pdfjsLib = pdfjs;
+      }
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
