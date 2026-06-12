@@ -2,7 +2,7 @@ import * as pdfjsLib from "./pdf.min.mjs";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.min.mjs";
 
-const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([\s\S]+?)\s+(?:Cuil|CUIL)?\s*\d{2}-\d{8}-\d/i;
+const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([A-Z][A-Z\s,.\-']*?)(?:\s+Cuil|\s+CUIL|\s+\d{2}-\d{8}-\d|\s*$)/i;
 const CUIL_PATTERN = /\b\d{2}-\d{8}-\d\b/;
 const BENEFICIARIO_PATTERN = /Beneficiario:\s*(?:\r?\n\s*)?(\d{2}-\d{8}-\d)/i;
 
