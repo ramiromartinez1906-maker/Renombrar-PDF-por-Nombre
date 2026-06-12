@@ -2,7 +2,7 @@ import * as pdfjsLib from "./pdf.min.mjs";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.min.mjs";
 
-const NAME_PATTERN = /(\d{9}\/\d\/\d{3})\s+(.+?)\s+(\d{2}-\d{8}-\d)/s;
+const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([\s\S]+?)\s+(?:Cuil|CUIL)?\s*\d{2}-\d{8}-\d/i;
 const CUIL_PATTERN = /\b\d{2}-\d{8}-\d\b/;
 const BENEFICIARIO_PATTERN = /Beneficiario:\s*(?:\r?\n\s*)?(\d{2}-\d{8}-\d)/i;
 
@@ -102,13 +102,14 @@ async function extractTextFromPages(file, pageCount) {
 
 async function extractName(file) {
   const text = await extractTextFromPages(file, 1);
-  const match = text.match(NAME_PATTERN);
+  const normalizedText = text.replace(/\s+/g, " ");
+  const match = normalizedText.match(NAME_PATTERN);
 
   if (!match) {
     throw new Error("No se pudo encontrar el campo Apellido y Nombres.");
   }
 
-  const normalizedName = sanitizeName(match[2].replace(/\s+/g, " "));
+  const normalizedName = sanitizeName(match[1].trim());
   if (!normalizedName) {
     throw new Error("El nombre extraido esta vacio.");
   }
