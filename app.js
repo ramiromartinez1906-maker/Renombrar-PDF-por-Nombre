@@ -1,9 +1,9 @@
-import * as pdfjsLib from "./pdf.min.mjs";
+// Load PDF.js from CDN (loaded in index.html as global script)
+const pdfjsLib = window.pdfjsLib;
 
-// Ensure the worker path works both locally and when served from a subpath (GitHub Pages).
-// Using import.meta.url builds an absolute URL relative to this module.
-const workerUrl = new URL("./pdf.worker.min.mjs", import.meta.url).href;
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+// Set worker from CDN
+pdfjsLib.GlobalWorkerOptions.workerSrc = 
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.11.0/build/pdf.worker.min.js";
 
 const NAME_PATTERN = /Apellido\s+y\s+Nombres\s*[:\s]*([A-Z][A-Z\s,.\-']*?)(?:\s+Cuil|\s+CUIL|\s+\d{2}-\d{8}-\d|\s*$)/i;
 const CUIL_PATTERN = /\b\d{2}-\d{8}-\d\b/;
