@@ -2,27 +2,39 @@
 // The CDN script exposes pdfjsLib globally
 let pdfjsLib;
 
-// Function to get PDF.js library with proper error handling
-function getPdfjsLib() {
-  if (!pdfjsLib) {
-    // Try different possible namespaces
-    pdfjsLib = window.pdfjsLib || window.pdfjs;
+// Ensure PDF.js is loaded; if not, dynamically load it from CDN.
+async function ensurePdfJs() {
+  if (window.pdfjsLib) {
+    pdfjsLib = window.pdfjsLib;
+    return pdfjsLib;
   }
-  
-  if (!pdfjsLib) {
-    throw new Error("PDF.js library not loaded from CDN. Please refresh the page and try again.");
+  if (window.pdfjs) {
+    pdfjsLib = window.pdfjs;
+    window.pdfjsLib = pdfjsLib;
+    return pdfjsLib;
   }
-  
-  return pdfjsLib;
+
+  // Try to dynamically load the CDN script
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = () => {
+      // map possible global names
+      pdfjsLib = window.pdfjsLib || window.pdfjs;
+      if (window.pdfjs && !window.pdfjsLib) window.pdfjsLib = window.pdfjs;
+      if (pdfjsLib) return resolve(pdfjsLib);
+      return reject(new Error("PDF.js loaded but global object not found"));
+    };
+    script.onerror = () => reject(new Error("Failed to load PDF.js from CDN"));
+    document.head.appendChild(script);
+  });
 }
 
-// Function to initialize PDF worker
-function initPdfWorker() {
-  const lib = getPdfjsLib();
-  if (!lib.GlobalWorkerOptions) {
-    throw new Error("PDF.js GlobalWorkerOptions not available");
-  }
-  lib.GlobalWorkerOptions.workerSrc = 
+// Initialize worker (ensures PDF.js is available first)
+async function initPdfWorker() {
+  const lib = await ensurePdfJs();
+  if (!lib.GlobalWorkerOptions) throw new Error("PDF.js GlobalWorkerOptions not available");
+  lib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
 
@@ -110,7 +122,7 @@ function updateFileList(incomingFiles) {
 }
 
 async function extractTextFromPages(file, pageCount) {
-  const lib = getPdfjsLib();
+  const lib = await ensurePdfJs();
   const data = await file.arrayBuffer();
   const pdf = await lib.getDocument({ data }).promise;
   const totalPages = Math.min(pdf.numPages, pageCount);
@@ -191,8 +203,8 @@ async function processFiles() {
   renderReport([]);
 
   try {
-    // Ensure PDF.js is initialized
-    initPdfWorker();
+  // Ensure PDF.js and its worker are initialized
+  await initPdfWorker();
     
     const zip = new window.JSZip();
     const usedNames = new Set();
